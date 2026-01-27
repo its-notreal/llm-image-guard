@@ -1,0 +1,63 @@
+.image-guard-scanning {
+  opacity: 0.7;
+  outline: 2px dashed #4cc9f0;
+  outline-offset: 2px;
+}
+
+.image-guard-blocked {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+  border: 2px solid #4cc9f0;
+  border-radius: 8px;
+  min-width: 150px;
+  min-height: 100px;
+  overflow: hidden;
+}
+
+.image-guard-blocked-message {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 16px;
+  text-align: center;
+  color: #eee;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+.image-guard-icon {
+  font-size: 24px;
+}
+
+.image-guard-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #4cc9f0;
+}
+
+.image-guard-reason {
+  font-size: 12px;
+  color: #aaa;
+  max-width: 180px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.image-guard-show-btn {
+  margin-top: 4px;
+  padding: 6px 12px;
+  border: 1px solid #4cc9f0;
+  border-radius: 4px;
+  background: transparent;
+  color: #4cc9f0;
+  font-size: 11px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.image-guard-show-btn:hover {
+  background: rgba(76, 201, 240, 0.2);
+}

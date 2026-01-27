@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div class="container">
+    <h1>Image Guard</h1>
+    
+    <div class="section">
+      <label for="apiKey">OpenRouter API Key</label>
+      <input type="password" id="apiKey" placeholder="sk-or-...">
+    </div>
+    
+    <div class="section">
+      <label for="model">Model</label>
+      <select id="model">
+        <option value="">Loading models...</option>
+      </select>
+      <button id="refreshModels" class="small-btn">Refresh</button>
+    </div>
+    
+    <div class="section">
+      <label>
+        <input type="checkbox" id="enabled" checked>
+        Enable scanning
+      </label>
+    </div>
+    
+    <div class="section">
+      <label for="blockRules">Content to Block (one per line)</label>
+      <textarea id="blockRules" rows="6" placeholder="violent content&#10;explicit imagery&#10;graphic gore"></textarea>
+    </div>
+    
+    <div class="section">
+      <label>
+        <input type="checkbox" id="usePageContext" checked>
+        Use page context for analysis
+      </label>
+    </div>
+    
+    <div class="section">
+      <label for="minImageSize">Minimum image size (px)</label>
+      <input type="number" id="minImageSize" value="100" min="10">
+    </div>
+    
+    <div class="section">
+      <button id="save" class="primary-btn">Save Settings</button>
+    </div>
+    
+    <div id="status" class="status"></div>
+    
+    <div class="section stats">
+      <h3>Session Stats</h3>
+      <div>Images scanned: <span id="scannedCount">0</span></div>
+      <div>Images blocked: <span id="blockedCount">0</span></div>
+    </div>
+  </div>
+  <script src="popup.js"></script>
+</body>
+</html>
