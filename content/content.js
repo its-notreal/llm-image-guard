@@ -182,17 +182,92 @@ function removeScanningIndicator(img) {
   if (indicator) indicator.remove();
 }
 
+// Selectors for content containers that should be hidden entirely when they contain blocked images
+const CONTAINER_SELECTORS = [
+  // Twitter/X
+  'article[data-testid="tweet"]',
+  '[data-testid="cellInnerDiv"]',
+  // Facebook
+  '[data-pagelet*="FeedUnit"]',
+  '[role="article"]',
+  // Reddit
+  'shreddit-post',
+  '.Post',
+  '[data-testid="post-container"]',
+  // Instagram
+  'article[role="presentation"]',
+  'article._aatb',
+  // LinkedIn
+  '.feed-shared-update-v2',
+  // Tumblr
+  '.post',
+  'article.post-wrapper',
+  // Generic
+  'article',
+  '.card',
+  '.feed-item',
+  '.stream-item',
+  '.timeline-item',
+  '[class*="post"]',
+  '[class*="tweet"]',
+  '[class*="status"]'
+];
+
+function findContentContainer(img) {
+  // Walk up the DOM to find a suitable container to hide
+  for (const selector of CONTAINER_SELECTORS) {
+    const container = img.closest(selector);
+    if (container) {
+      // Make sure the container isn't too large (like the whole feed)
+      const rect = container.getBoundingClientRect();
+      if (rect.height < window.innerHeight * 1.5 && rect.height > 50) {
+        return container;
+      }
+    }
+  }
+  
+  // Fallback: find a reasonable parent (not too big, not too small)
+  let parent = img.parentElement;
+  let levels = 0;
+  while (parent && levels < 8) {
+    const rect = parent.getBoundingClientRect();
+    // Good container: bigger than the image but not huge
+    if (rect.height > 100 && rect.height < window.innerHeight * 0.8) {
+      // Check if this looks like a content card/post
+      const hasMultipleChildren = parent.children.length > 1;
+      const hasSiblings = parent.parentElement?.children.length > 1;
+      if (hasMultipleChildren || hasSiblings) {
+        return parent;
+      }
+    }
+    parent = parent.parentElement;
+    levels++;
+  }
+  
+  return null;
+}
+
 function blockImage(img, result) {
   const isTestMode = result.testMode;
+  
+  if (isTestMode) {
+    // Test mode - show grey placeholder box
+    showTestPlaceholder(img, result);
+  } else {
+    // Block mode - completely remove from DOM
+    hideContentCompletely(img, result);
+  }
+}
+
+function showTestPlaceholder(img, result) {
   const width = img.offsetWidth || img.naturalWidth || 200;
   const height = img.offsetHeight || img.naturalHeight || 150;
   
   const placeholder = document.createElement('div');
-  placeholder.className = `image-guard-blocked ${isTestMode ? 'test-mode' : ''}`;
+  placeholder.className = 'image-guard-blocked test-mode';
   placeholder.style.width = `${width}px`;
   placeholder.style.height = `${height}px`;
   
-  // Preserve aspect ratio for responsive images
   if (img.style.width === '100%' || img.style.maxWidth) {
     placeholder.style.width = img.style.width || '100%';
     placeholder.style.aspectRatio = `${width} / ${height}`;
@@ -201,74 +276,84 @@ function blockImage(img, result) {
   
   const showDetails = width > 150 && height > 100;
   
-  if (isTestMode) {
-    // Test mode - minimal grey box
-    placeholder.innerHTML = `
-      <div class="image-guard-test-content">
-        <div class="image-guard-test-badge">TEST</div>
-        ${showDetails ? `
-          <div class="image-guard-test-info">
-            <span class="image-guard-test-category">${result.category || 'Blocked'}</span>
-          </div>
-        ` : ''}
-      </div>
-    `;
-  } else {
-    // Block mode - full UI
-    placeholder.innerHTML = `
-      <div class="image-guard-block-content">
-        <div class="image-guard-block-icon">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M12 2L22 8.5V15.5L12 22L2 15.5V8.5L12 2Z"/>
-            <circle cx="12" cy="12" r="4"/>
-          </svg>
+  placeholder.innerHTML = `
+    <div class="image-guard-test-content">
+      <div class="image-guard-test-badge">TEST</div>
+      ${showDetails ? `
+        <div class="image-guard-test-info">
+          <span class="image-guard-test-category">${result.category || 'Blocked'}</span>
         </div>
-        ${showDetails ? `
-          <div class="image-guard-block-text">
-            <div class="image-guard-block-title">Content Blocked</div>
-            <div class="image-guard-block-reason">${result.category || result.reason}</div>
-          </div>
-        ` : ''}
-        <button class="image-guard-show-btn" title="Show image">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
-            <circle cx="12" cy="12" r="3"/>
-          </svg>
-          ${width > 180 ? 'Show' : ''}
-        </button>
-      </div>
-    `;
-  }
+      ` : ''}
+    </div>
+  `;
   
-  // Add show button handler
-  const showBtn = placeholder.querySelector('.image-guard-show-btn');
-  if (showBtn) {
-    showBtn.addEventListener('click', (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      showImage(img, placeholder);
-    });
-  }
+  placeholder.addEventListener('click', (e) => {
+    if (e.target === placeholder || e.target.closest('.image-guard-test-content')) {
+      placeholder.remove();
+      img.style.display = '';
+      blockedImages.delete(img);
+    }
+  });
   
-  // For test mode, clicking anywhere reveals
-  if (isTestMode) {
-    placeholder.addEventListener('click', (e) => {
-      if (e.target === placeholder || e.target.closest('.image-guard-test-content')) {
-        showImage(img, placeholder);
-      }
-    });
-  }
-  
-  // Hide original image and insert placeholder
   img.style.display = 'none';
   img.insertAdjacentElement('afterend', placeholder);
-  
   blockedImages.set(img, placeholder);
 }
 
-function showImage(img, placeholder) {
-  placeholder.remove();
-  img.style.display = '';
+function hideContentCompletely(img, result) {
+  // Try to find a content container (tweet, post, card, etc.)
+  const container = findContentContainer(img);
+  
+  if (container) {
+    // Store original state for potential restoration
+    const originalDisplay = container.style.display;
+    const originalVisibility = container.style.visibility;
+    
+    // Completely hide the container
+    container.style.display = 'none';
+    container.dataset.imageGuardHidden = 'true';
+    container.dataset.imageGuardReason = result.category || result.reason || 'Content blocked';
+    
+    blockedImages.set(img, {
+      type: 'container',
+      element: container,
+      originalDisplay,
+      originalVisibility
+    });
+  } else {
+    // No container found - just hide the image itself
+    img.style.display = 'none';
+    img.dataset.imageGuardHidden = 'true';
+    
+    blockedImages.set(img, {
+      type: 'image',
+      element: img,
+      originalDisplay: img.style.display
+    });
+  }
+}
+
+function showImage(img, blockedInfo) {
+  if (!blockedInfo) {
+    blockedInfo = blockedImages.get(img);
+  }
+  
+  if (!blockedInfo) return;
+  
+  if (blockedInfo.type === 'container') {
+    blockedInfo.element.style.display = blockedInfo.originalDisplay || '';
+    blockedInfo.element.style.visibility = blockedInfo.originalVisibility || '';
+    delete blockedInfo.element.dataset.imageGuardHidden;
+    delete blockedInfo.element.dataset.imageGuardReason;
+  } else if (blockedInfo.type === 'image') {
+    img.style.display = blockedInfo.originalDisplay || '';
+    delete img.dataset.imageGuardHidden;
+  } else if (blockedInfo instanceof HTMLElement) {
+    // Legacy: placeholder element (test mode)
+    blockedInfo.remove();
+    img.style.display = '';
+  }
+  
   blockedImages.delete(img);
 }
 
@@ -355,15 +440,19 @@ browser.runtime.onMessage.addListener((message) => {
       init();
       break;
     case 'rescanPage':
-      // Clear processed state and rescan
+      // Clear processed state and restore hidden content
       document.querySelectorAll('img').forEach(img => {
         processedImages.delete(img);
-        const placeholder = blockedImages.get(img);
-        if (placeholder) {
-          placeholder.remove();
-          img.style.display = '';
-          blockedImages.delete(img);
+        const blockedInfo = blockedImages.get(img);
+        if (blockedInfo) {
+          showImage(img, blockedInfo);
         }
+      });
+      // Also restore any containers that were hidden
+      document.querySelectorAll('[data-image-guard-hidden]').forEach(el => {
+        el.style.display = '';
+        delete el.dataset.imageGuardHidden;
+        delete el.dataset.imageGuardReason;
       });
       init();
       break;

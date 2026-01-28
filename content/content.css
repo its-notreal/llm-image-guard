@@ -27,85 +27,19 @@
   to { transform: rotate(360deg); }
 }
 
-/* Blocked image placeholder */
-.image-guard-blocked {
+/* Test mode placeholder - grey box */
+.image-guard-blocked.test-mode {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #1a1a2e 0%, #0f0f1a 100%);
-  border: 1px solid #334155;
+  background: linear-gradient(135deg, #374151 0%, #1f2937 100%);
+  border: 2px dashed #4b5563;
   border-radius: 8px;
   overflow: hidden;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   box-sizing: border-box;
   min-width: 80px;
   min-height: 60px;
-}
-
-.image-guard-block-content {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 8px;
-  padding: 16px;
-  text-align: center;
-  max-width: 100%;
-}
-
-.image-guard-block-icon {
-  color: #6366f1;
-  opacity: 0.9;
-}
-
-.image-guard-block-text {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.image-guard-block-title {
-  font-size: 13px;
-  font-weight: 600;
-  color: #f8fafc;
-}
-
-.image-guard-block-reason {
-  font-size: 11px;
-  color: #94a3b8;
-  max-width: 180px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.image-guard-show-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 4px;
-  padding: 6px 12px;
-  margin-top: 4px;
-  background: rgba(99, 102, 241, 0.15);
-  border: 1px solid rgba(99, 102, 241, 0.3);
-  border-radius: 6px;
-  color: #818cf8;
-  font-size: 11px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.15s ease;
-  font-family: inherit;
-}
-
-.image-guard-show-btn:hover {
-  background: rgba(99, 102, 241, 0.25);
-  border-color: rgba(99, 102, 241, 0.5);
-  color: #a5b4fc;
-}
-
-/* Test mode styling - grey box */
-.image-guard-blocked.test-mode {
-  background: linear-gradient(135deg, #374151 0%, #1f2937 100%);
-  border-color: #4b5563;
   cursor: pointer;
   transition: all 0.15s ease;
 }
@@ -143,70 +77,15 @@
   color: #9ca3af;
 }
 
-/* Small placeholder adjustments */
-.image-guard-blocked[style*="width: 8"],
-.image-guard-blocked[style*="width: 9"],
-.image-guard-blocked[style*="width: 10"],
-.image-guard-blocked[style*="width: 11"],
-.image-guard-blocked[style*="width: 12"] {
-  /* Smaller images get minimal UI */
-}
-
-.image-guard-blocked:where([style*="width: 8"], [style*="width: 9"]) .image-guard-block-text,
-.image-guard-blocked:where([style*="width: 8"], [style*="width: 9"]) .image-guard-test-info {
-  display: none;
-}
-
-/* Responsive adjustments */
-@media (max-width: 480px) {
-  .image-guard-block-content {
-    padding: 12px;
-    gap: 6px;
-  }
-  
-  .image-guard-block-title {
-    font-size: 12px;
-  }
-  
-  .image-guard-block-reason {
-    font-size: 10px;
-    max-width: 140px;
-  }
-  
-  .image-guard-show-btn {
-    padding: 5px 10px;
-    font-size: 10px;
-  }
-}
-
-/* Dark mode compatibility */
+/* Light mode compatibility for test placeholders */
 @media (prefers-color-scheme: light) {
-  .image-guard-blocked:not(.test-mode) {
-    background: linear-gradient(135deg, #e2e8f0 0%, #cbd5e1 100%);
-    border-color: #94a3b8;
-  }
-  
-  .image-guard-block-title {
-    color: #1e293b;
-  }
-  
-  .image-guard-block-reason {
-    color: #64748b;
-  }
-  
-  .image-guard-show-btn {
-    background: rgba(99, 102, 241, 0.1);
-    color: #4f46e5;
-  }
-  
-  .image-guard-show-btn:hover {
-    background: rgba(99, 102, 241, 0.2);
-    color: #4338ca;
-  }
-  
   .image-guard-blocked.test-mode {
     background: linear-gradient(135deg, #d1d5db 0%, #9ca3af 100%);
     border-color: #6b7280;
+  }
+  
+  .image-guard-blocked.test-mode:hover {
+    background: linear-gradient(135deg, #9ca3af 0%, #6b7280 100%);
   }
   
   .image-guard-test-category {
@@ -214,8 +93,8 @@
   }
 }
 
-/* Animation for blocked content appearing */
-.image-guard-blocked {
+/* Animation for test placeholder appearing */
+.image-guard-blocked.test-mode {
   animation: ig-fade-in 0.2s ease-out;
 }
 
