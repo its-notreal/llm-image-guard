@@ -432,28 +432,40 @@ function observeNewImages() {
   }, { passive: true });
 }
 
+function restoreAllBlockedContent() {
+  // Restore all blocked images and containers
+  document.querySelectorAll('img').forEach(img => {
+    processedImages.delete(img);
+    const blockedInfo = blockedImages.get(img);
+    if (blockedInfo) {
+      showImage(img, blockedInfo);
+    }
+  });
+  // Also restore any containers that were hidden
+  document.querySelectorAll('[data-image-guard-hidden]').forEach(el => {
+    el.style.display = '';
+    delete el.dataset.imageGuardHidden;
+    delete el.dataset.imageGuardReason;
+  });
+  // Remove any test mode placeholders
+  document.querySelectorAll('.image-guard-blocked').forEach(el => {
+    el.remove();
+  });
+}
+
 // Message handlers
 browser.runtime.onMessage.addListener((message) => {
   switch (message.type) {
     case 'pageLoaded':
+      init();
+      break;
     case 'settingsUpdated':
+      // When settings change (especially mode), restore content and rescan
+      restoreAllBlockedContent();
       init();
       break;
     case 'rescanPage':
-      // Clear processed state and restore hidden content
-      document.querySelectorAll('img').forEach(img => {
-        processedImages.delete(img);
-        const blockedInfo = blockedImages.get(img);
-        if (blockedInfo) {
-          showImage(img, blockedInfo);
-        }
-      });
-      // Also restore any containers that were hidden
-      document.querySelectorAll('[data-image-guard-hidden]').forEach(el => {
-        el.style.display = '';
-        delete el.dataset.imageGuardHidden;
-        delete el.dataset.imageGuardReason;
-      });
+      restoreAllBlockedContent();
       init();
       break;
   }

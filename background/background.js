@@ -157,7 +157,8 @@ async function analyzeImage(imageUrl, pageContext, tabId) {
     const cached = imageCache.get(cacheKey);
     stats.cached++;
     await updateStats();
-    return { ...cached, fromCache: true };
+    // Always use current testMode setting, not cached value
+    return { ...cached, testMode: settings.operatingMode === 'test', fromCache: true };
   }
   
   const prompt = buildPrompt(pageContext);
