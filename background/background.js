@@ -17,6 +17,8 @@ const imageCache = new Map();
 const MAX_CACHE_SIZE = 1000;
 
 async function loadSettings() {
+  const previousMode = settings.operatingMode;
+  
   const stored = await browser.storage.local.get([
     'apiKey', 'model', 'enabled', 'categories', 'customRules',
     'usePageContext', 'minImageSize', 'sensitivity', 'whitelist',
@@ -26,6 +28,12 @@ async function loadSettings() {
   settings = { ...settings, ...stored };
   stats = stored.stats || stats;
   pageStats = stored.pageStats || {};
+  
+  // Clear cache when switching between block and test modes
+  if (previousMode && previousMode !== settings.operatingMode) {
+    imageCache.clear();
+    console.log('Image Guard: Cache cleared due to mode change');
+  }
 }
 
 loadSettings();
